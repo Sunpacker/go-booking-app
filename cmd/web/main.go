@@ -2,9 +2,9 @@ package main
 
 import (
 	"fmt"
-	"github.com/Sunpacker/go-booking-app/pkg/config"
-	"github.com/Sunpacker/go-booking-app/pkg/handlers"
-	"github.com/Sunpacker/go-booking-app/pkg/render"
+	"github.com/Sunpacker/go-booking-app/internal/config"
+	"github.com/Sunpacker/go-booking-app/internal/handlers"
+	"github.com/Sunpacker/go-booking-app/internal/render"
 	"github.com/alexedwards/scs/v2"
 	"log"
 	"net/http"

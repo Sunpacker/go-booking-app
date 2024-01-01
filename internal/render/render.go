@@ -3,8 +3,8 @@ package render
 import (
 	"bytes"
 	"fmt"
-	"github.com/Sunpacker/go-booking-app/pkg/config"
-	"github.com/Sunpacker/go-booking-app/pkg/models"
+	"github.com/Sunpacker/go-booking-app/internal/config"
+	"github.com/Sunpacker/go-booking-app/internal/models"
 	"html/template"
 	"log"
 	"net/http"
