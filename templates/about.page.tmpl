@@ -9,7 +9,14 @@
         <div class="row">
             <div class="col">
                 <h1>About</h1>
-                <p>{{index .StringMap "test"}}</p>
+                <p>
+                    {{if ne (index .StringMap "test") ""}}
+                        My ip is: {{index .StringMap "test"}}
+                    {{else}}
+                        I dont know your IP. Visit <a href="/">Home page</a>
+
+                    {{end}}
+                </p>
             </div>
         </div>
     </div>
