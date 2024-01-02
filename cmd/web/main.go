@@ -5,11 +5,13 @@ import (
 	"fmt"
 	"github.com/Sunpacker/go-booking-app/internal/config"
 	"github.com/Sunpacker/go-booking-app/internal/handlers"
+	"github.com/Sunpacker/go-booking-app/internal/helpers"
 	"github.com/Sunpacker/go-booking-app/internal/models"
 	"github.com/Sunpacker/go-booking-app/internal/render"
 	"github.com/alexedwards/scs/v2"
 	"log"
 	"net/http"
+	"os"
 	"time"
 )
 
@@ -36,8 +38,11 @@ func main() {
 
 func run() error {
 	gob.Register(models.Reservation{})
+
 	app.IsProd = false
 	app.UseCache = app.IsProd
+	app.InfoLog = log.New(os.Stdout, "[INFO]\t", log.Ldate|log.Ltime)
+	app.ErrorLog = log.New(os.Stdout, "[ERROR]\t", log.Ldate|log.Ltime|log.Lshortfile)
 
 	initSession()
 
@@ -47,6 +52,8 @@ func run() error {
 	if err != nil {
 		return err
 	}
+
+	initHelpers()
 
 	return nil
 }
@@ -63,7 +70,7 @@ func initSession() {
 
 func initHandlers() {
 	repo := handlers.CreateNewRepo(&app)
-	handlers.SetNewHandlers(repo)
+	handlers.NewHandlers(repo)
 }
 
 func initPages() error {
@@ -77,4 +84,8 @@ func initPages() error {
 	render.NewTemplates(&app)
 
 	return nil
+}
+
+func initHelpers() {
+	helpers.NewHelpers(&app)
 }

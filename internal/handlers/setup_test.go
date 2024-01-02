@@ -10,7 +10,9 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	"html/template"
+	"log"
 	"net/http"
+	"os"
 	"path/filepath"
 	"strings"
 	"time"
@@ -24,6 +26,8 @@ func getRoutes() http.Handler {
 	gob.Register(models.Reservation{})
 	app.IsProd = false
 	app.UseCache = true
+	app.InfoLog = log.New(os.Stdout, "[INFO]\t", log.Ldate|log.Ltime)
+	app.ErrorLog = log.New(os.Stdout, "[ERROR]\t", log.Ldate|log.Ltime|log.Lshortfile)
 
 	initSession()
 
@@ -55,7 +59,7 @@ func initSession() {
 
 func initHandlers() {
 	repo := CreateNewRepo(&app)
-	SetNewHandlers(repo)
+	NewHandlers(repo)
 }
 
 func initPages() error {

@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"github.com/Sunpacker/go-booking-app/internal/config"
 	"github.com/Sunpacker/go-booking-app/internal/forms"
+	"github.com/Sunpacker/go-booking-app/internal/helpers"
 	"github.com/Sunpacker/go-booking-app/internal/models"
 	"github.com/Sunpacker/go-booking-app/internal/render"
-	"log"
 	"net/http"
 )
 
@@ -23,26 +23,16 @@ func CreateNewRepo(a *config.AppConfig) *Repository {
 	}
 }
 
-func SetNewHandlers(r *Repository) {
+func NewHandlers(r *Repository) {
 	Repo = r
 }
 
 func (m *Repository) Home(w http.ResponseWriter, r *http.Request) {
-	remoteIp := r.RemoteAddr
-	m.App.Session.Put(r.Context(), "remote_ip", remoteIp)
-
 	_ = render.RenderTemplate(w, r, "home", &models.TemplateData{})
 }
 
 func (m *Repository) About(w http.ResponseWriter, r *http.Request) {
-	remoteIp := m.App.Session.GetString(r.Context(), "remote_ip")
-
-	stringMap := make(map[string]string)
-	stringMap["test"] = remoteIp
-
-	_ = render.RenderTemplate(w, r, "about", &models.TemplateData{
-		StringMap: stringMap,
-	})
+	_ = render.RenderTemplate(w, r, "about", &models.TemplateData{})
 }
 
 func (m *Repository) Reservation(w http.ResponseWriter, r *http.Request) {
@@ -59,7 +49,7 @@ func (m *Repository) Reservation(w http.ResponseWriter, r *http.Request) {
 func (m *Repository) PostReservation(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		log.Println(err)
+		helpers.ServerError(w, err)
 		return
 	}
 
@@ -121,7 +111,8 @@ func (m *Repository) AvailabilityJSON(w http.ResponseWriter, r *http.Request) {
 
 	out, err := json.Marshal(&resp)
 	if err != nil {
-		log.Println(err)
+		helpers.ServerError(w, err)
+		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -130,4 +121,26 @@ func (m *Repository) AvailabilityJSON(w http.ResponseWriter, r *http.Request) {
 
 func (m *Repository) Contact(w http.ResponseWriter, r *http.Request) {
 	_ = render.RenderTemplate(w, r, "contact", &models.TemplateData{})
+}
+
+func (m *Repository) ReservationSummary(w http.ResponseWriter, r *http.Request) {
+	const reservationSession = "reservation"
+
+	reservation, ok := m.App.Session.Get(r.Context(), reservationSession).(models.Reservation)
+	if !ok {
+		msg := "cannot get error from session"
+		m.App.ErrorLog.Println(msg)
+		m.App.Session.Put(r.Context(), "error", msg)
+		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+		return
+	}
+
+	m.App.Session.Remove(r.Context(), reservationSession)
+
+	data := make(map[string]interface{})
+	data[reservationSession] = reservation
+
+	_ = render.RenderTemplate(w, r, "reservation-summary", &models.TemplateData{
+		Data: data,
+	})
 }
