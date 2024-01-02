@@ -31,7 +31,7 @@ func (m *Repository) Home(w http.ResponseWriter, r *http.Request) {
 	remoteIp := r.RemoteAddr
 	m.App.Session.Put(r.Context(), "remote_ip", remoteIp)
 
-	render.RenderTemplate(w, "home", &models.TemplateData{})
+	_ = render.RenderTemplate(w, r, "home", &models.TemplateData{})
 }
 
 func (m *Repository) About(w http.ResponseWriter, r *http.Request) {
@@ -40,19 +40,18 @@ func (m *Repository) About(w http.ResponseWriter, r *http.Request) {
 	stringMap := make(map[string]string)
 	stringMap["test"] = remoteIp
 
-	render.RenderTemplate(w, "about", &models.TemplateData{
+	_ = render.RenderTemplate(w, r, "about", &models.TemplateData{
 		StringMap: stringMap,
 	})
 }
 
 func (m *Repository) Reservation(w http.ResponseWriter, r *http.Request) {
-	_ = r
 	var emptyReservation models.Reservation
 
 	data := make(map[string]interface{})
 	data["reservation"] = emptyReservation
 
-	render.RenderTemplate(w, "make-reservation", &models.TemplateData{
+	_ = render.RenderTemplate(w, r, "make-reservation", &models.TemplateData{
 		Form: forms.New(nil),
 		Data: data,
 	})
@@ -74,14 +73,14 @@ func (m *Repository) PostReservation(w http.ResponseWriter, r *http.Request) {
 	form := forms.New(r.PostForm)
 
 	form.Required("first_name", "last_name", "email")
-	form.MinLength("first_name", 3, r)
+	form.MinLength("first_name", 3)
 	form.IsEmail("email")
 
 	if !form.Valid() {
 		data := make(map[string]interface{})
 		data["reservation"] = reservation
 
-		render.RenderTemplate(w, "make-reservation", &models.TemplateData{
+		_ = render.RenderTemplate(w, r, "make-reservation", &models.TemplateData{
 			Form: form,
 			Data: data,
 		})
@@ -91,18 +90,15 @@ func (m *Repository) PostReservation(w http.ResponseWriter, r *http.Request) {
 }
 
 func (m *Repository) Generals(w http.ResponseWriter, r *http.Request) {
-	_ = r
-	render.RenderTemplate(w, "generals", &models.TemplateData{})
+	_ = render.RenderTemplate(w, r, "generals", &models.TemplateData{})
 }
 
 func (m *Repository) Majors(w http.ResponseWriter, r *http.Request) {
-	_ = r
-	render.RenderTemplate(w, "majors", &models.TemplateData{})
+	_ = render.RenderTemplate(w, r, "majors", &models.TemplateData{})
 }
 
 func (m *Repository) Availability(w http.ResponseWriter, r *http.Request) {
-	_ = r
-	render.RenderTemplate(w, "search-availability", &models.TemplateData{})
+	_ = render.RenderTemplate(w, r, "search-availability", &models.TemplateData{})
 }
 func (m *Repository) PostAvailability(w http.ResponseWriter, r *http.Request) {
 	start := r.Form.Get("start")
@@ -133,6 +129,5 @@ func (m *Repository) AvailabilityJSON(w http.ResponseWriter, r *http.Request) {
 }
 
 func (m *Repository) Contact(w http.ResponseWriter, r *http.Request) {
-	_ = r
-	render.RenderTemplate(w, "contact", &models.TemplateData{})
+	_ = render.RenderTemplate(w, r, "contact", &models.TemplateData{})
 }

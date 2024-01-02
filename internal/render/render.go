@@ -2,17 +2,19 @@ package render
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"github.com/Sunpacker/go-booking-app/internal/config"
 	"github.com/Sunpacker/go-booking-app/internal/models"
+	"github.com/justinas/nosurf"
 	"html/template"
-	"log"
 	"net/http"
 	"path/filepath"
 	"strings"
 )
 
 var functions = template.FuncMap{}
+var templatesFormat = "./templates/%s.tmpl"
 
 var app *config.AppConfig
 
@@ -20,12 +22,16 @@ func NewTemplates(a *config.AppConfig) {
 	app = a
 }
 
-func AddDefaultData(templateData *models.TemplateData) *models.TemplateData {
+func AddDefaultData(templateData *models.TemplateData, r *http.Request) *models.TemplateData {
+	templateData.Flash = app.Session.PopString(r.Context(), "flash")
+	templateData.Error = app.Session.PopString(r.Context(), "error")
+	templateData.Warning = app.Session.PopString(r.Context(), "warning")
+	templateData.CSRFToken = nosurf.Token(r)
 	return templateData
 }
 
 // RenderTemplate renders templates using html
-func RenderTemplate(w http.ResponseWriter, tmpl string, templateData *models.TemplateData) {
+func RenderTemplate(w http.ResponseWriter, r *http.Request, tmpl string, templateData *models.TemplateData) error {
 	var templateCache map[string]*template.Template
 
 	if app.UseCache {
@@ -36,22 +42,23 @@ func RenderTemplate(w http.ResponseWriter, tmpl string, templateData *models.Tem
 
 	templateFromCache, ok := templateCache[tmpl]
 	if !ok {
-		log.Fatal("template not found")
+		return errors.New(fmt.Sprintf("cannot get template '%s' from cache", tmpl))
 	}
 
 	templateBuffer := new(bytes.Buffer)
-	templateData = AddDefaultData(templateData)
+	templateData = AddDefaultData(templateData, r)
 	_ = templateFromCache.Execute(templateBuffer, templateData)
 
 	_, err := templateBuffer.WriteTo(w)
 	if err != nil {
-		fmt.Println("error while writing template to browser:", err)
-		return
+		return err
 	}
+
+	return nil
 }
 
 func getTemplateFilepathPattern(pattern string) string {
-	return "./templates/" + pattern + ".tmpl"
+	return fmt.Sprintf(templatesFormat, pattern)
 }
 
 func CreateTemplateCache() (map[string]*template.Template, error) {

@@ -7,8 +7,17 @@ import (
 	"net/http"
 )
 
+func routes() http.Handler {
+	mux := chi.NewRouter()
+
+	initMiddlewares(mux)
+	initStaticFilesDir(mux)
+	initPageRoutes(mux)
+
+	return mux
+}
+
 func initMiddlewares(mux *chi.Mux) {
-	mux.Use(middleware.AllowContentType())
 	mux.Use(middleware.Recoverer)
 	mux.Use(NoSurf)
 	mux.Use(SessionLoad)
@@ -33,14 +42,4 @@ func initPageRoutes(mux *chi.Mux) {
 	mux.Post("/make-reservation", handlers.Repo.PostReservation)
 
 	mux.Get("/contact", handlers.Repo.Contact)
-}
-
-func routes() http.Handler {
-	mux := chi.NewRouter()
-
-	initMiddlewares(mux)
-	initStaticFilesDir(mux)
-	initPageRoutes(mux)
-
-	return mux
 }
