@@ -16,6 +16,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"testing"
 	"time"
 )
 
@@ -23,7 +24,7 @@ var app config.AppConfig
 var session *scs.SessionManager
 var functions = template.FuncMap{}
 
-func getRoutes() http.Handler {
+func TestMain(m *testing.M) {
 	gob.Register(models.Reservation{})
 	app.IsProd = false
 	app.UseCache = true
@@ -37,12 +38,15 @@ func getRoutes() http.Handler {
 
 	initSession()
 	initHandlers(db)
-
 	err = initPages()
 	if err != nil {
-		return nil
+		log.Fatal("cannot create template cache")
 	}
 
+	os.Exit(m.Run())
+}
+
+func getRoutes() http.Handler {
 	mux := chi.NewRouter()
 
 	initMiddlewares(mux)
@@ -58,12 +62,12 @@ func initSession() {
 	session.Cookie.SameSite = http.SameSiteLaxMode
 	session.Cookie.Persist = true
 	session.Cookie.Secure = app.IsProd
-
 	app.Session = session
 }
 
 func initHandlers(db *driver.DB) {
-	repo := CreateNewRepo(&app, db)
+	_ = db
+	repo := NewTestRepo(&app)
 	NewHandlers(repo)
 }
 

@@ -34,7 +34,7 @@ func getRequestWithSession() (*http.Request, error) {
 	return request, nil
 }
 
-func TestNewTemplates(t *testing.T) {
+func TestNewRenderer(t *testing.T) {
 	NewRenderer(app)
 }
 

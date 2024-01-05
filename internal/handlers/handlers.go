@@ -31,6 +31,13 @@ func CreateNewRepo(a *config.AppConfig, db *driver.DB) *Repository {
 	}
 }
 
+func NewTestRepo(a *config.AppConfig) *Repository {
+	return &Repository{
+		App: a,
+		DB:  dbrepo.NewTestRepo(a),
+	}
+}
+
 func NewHandlers(r *Repository) {
 	Repo = r
 }
@@ -46,13 +53,15 @@ func (m *Repository) About(w http.ResponseWriter, r *http.Request) {
 func (m *Repository) Reservation(w http.ResponseWriter, r *http.Request) {
 	reservation, ok := m.App.Session.Get(r.Context(), "reservation").(models.Reservation)
 	if !ok {
-		helpers.ServerError(w, errors.New("type assertion to string of reservation has failed"))
+		m.App.Session.Put(r.Context(), "error", "Cannot get reservation from session")
+		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 		return
 	}
 
 	room, err := m.DB.GetRoomByID(reservation.RoomID)
 	if err != nil {
-		helpers.ServerError(w, err)
+		m.App.Session.Put(r.Context(), "error", "cannot find room")
+		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 		return
 	}
 
