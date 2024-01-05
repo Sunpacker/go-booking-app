@@ -35,7 +35,7 @@ func getRequestWithSession() (*http.Request, error) {
 }
 
 func TestNewTemplates(t *testing.T) {
-	NewTemplates(app)
+	NewRenderer(app)
 }
 
 func TestRenderTemplate(t *testing.T) {
@@ -55,11 +55,11 @@ func TestRenderTemplate(t *testing.T) {
 
 	var writer skeletonWriter
 
-	err = RenderTemplate(&writer, request, "home", &models.TemplateData{})
+	err = Template(&writer, request, "home", &models.TemplateData{})
 	if err != nil {
 		t.Error("[TestRenderTemplate] home rendering error:", err)
 	}
-	err = RenderTemplate(&writer, request, "non-existent", &models.TemplateData{})
+	err = Template(&writer, request, "non-existent", &models.TemplateData{})
 	if err == nil {
 		t.Error("[TestRenderTemplate] non-existent template has rendered")
 	}

@@ -4,6 +4,7 @@ import (
 	"encoding/gob"
 	"fmt"
 	"github.com/Sunpacker/go-booking-app/internal/config"
+	"github.com/Sunpacker/go-booking-app/internal/driver"
 	"github.com/Sunpacker/go-booking-app/internal/handlers"
 	"github.com/Sunpacker/go-booking-app/internal/helpers"
 	"github.com/Sunpacker/go-booking-app/internal/models"
@@ -21,7 +22,7 @@ var app config.AppConfig
 var session *scs.SessionManager
 
 func main() {
-	err := run()
+	_, err := run()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -36,26 +37,32 @@ func main() {
 	log.Fatal(err)
 }
 
-func run() error {
+func run() (*driver.DB, error) {
+	gob.Register(models.User{})
+	gob.Register(models.Room{})
 	gob.Register(models.Reservation{})
+	gob.Register(models.Restriction{})
+	gob.Register(models.RoomRestriction{})
 
 	app.IsProd = false
 	app.UseCache = app.IsProd
 	app.InfoLog = log.New(os.Stdout, "[INFO]\t", log.Ldate|log.Ltime)
 	app.ErrorLog = log.New(os.Stdout, "[ERROR]\t", log.Ldate|log.Ltime|log.Lshortfile)
 
-	initSession()
-
-	initHandlers()
-
-	err := initPages()
+	db, err := driver.ConnectSQL("host=localhost port=5432 dbname=booking-app user=postgres password=root")
 	if err != nil {
-		return err
+		log.Fatal("cannot connect to database, dying...")
 	}
 
+	initSession()
+	initHandlers(db)
+	err = initPages()
+	if err != nil {
+		return nil, err
+	}
 	initHelpers()
 
-	return nil
+	return db, nil
 }
 
 func initSession() {
@@ -68,8 +75,8 @@ func initSession() {
 	app.Session = session
 }
 
-func initHandlers() {
-	repo := handlers.CreateNewRepo(&app)
+func initHandlers(db *driver.DB) {
+	repo := handlers.CreateNewRepo(&app, db)
 	handlers.NewHandlers(repo)
 }
 
@@ -81,7 +88,7 @@ func initPages() error {
 	}
 
 	app.TemplateCache = templateCache
-	render.NewTemplates(&app)
+	render.NewRenderer(&app)
 
 	return nil
 }

@@ -4,6 +4,7 @@ import (
 	"encoding/gob"
 	"fmt"
 	"github.com/Sunpacker/go-booking-app/internal/config"
+	"github.com/Sunpacker/go-booking-app/internal/driver"
 	"github.com/Sunpacker/go-booking-app/internal/models"
 	"github.com/Sunpacker/go-booking-app/internal/render"
 	"github.com/alexedwards/scs/v2"
@@ -29,11 +30,15 @@ func getRoutes() http.Handler {
 	app.InfoLog = log.New(os.Stdout, "[INFO]\t", log.Ldate|log.Ltime)
 	app.ErrorLog = log.New(os.Stdout, "[ERROR]\t", log.Ldate|log.Ltime|log.Lshortfile)
 
+	db, err := driver.ConnectSQL("host=localhost port=5432 dbname=booking-app user=postgres password=root")
+	if err != nil {
+		log.Fatal("cannot connect to database, dying...")
+	}
+
 	initSession()
+	initHandlers(db)
 
-	initHandlers()
-
-	err := initPages()
+	err = initPages()
 	if err != nil {
 		return nil
 	}
@@ -57,8 +62,8 @@ func initSession() {
 	app.Session = session
 }
 
-func initHandlers() {
-	repo := CreateNewRepo(&app)
+func initHandlers(db *driver.DB) {
+	repo := CreateNewRepo(&app, db)
 	NewHandlers(repo)
 }
 
@@ -69,7 +74,7 @@ func initPages() error {
 	}
 
 	app.TemplateCache = templateCache
-	render.NewTemplates(&app)
+	render.NewRenderer(&app)
 
 	return nil
 }

@@ -18,7 +18,7 @@ var templatesFormat = "./templates/%s.tmpl"
 
 var app *config.AppConfig
 
-func NewTemplates(a *config.AppConfig) {
+func NewRenderer(a *config.AppConfig) {
 	app = a
 }
 
@@ -30,8 +30,8 @@ func AddDefaultData(templateData *models.TemplateData, r *http.Request) *models.
 	return templateData
 }
 
-// RenderTemplate renders templates using html
-func RenderTemplate(w http.ResponseWriter, r *http.Request, tmpl string, templateData *models.TemplateData) error {
+// Template renders templates using html
+func Template(w http.ResponseWriter, r *http.Request, tmpl string, templateData *models.TemplateData) error {
 	var templateCache map[string]*template.Template
 
 	if app.UseCache {
