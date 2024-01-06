@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"encoding/gob"
 	"fmt"
 	"github.com/Sunpacker/go-booking-app/internal/config"
@@ -22,10 +23,16 @@ var app config.AppConfig
 var session *scs.SessionManager
 
 func main() {
-	_, err := run()
+	db, err := run()
 	if err != nil {
 		log.Fatal(err)
 	}
+	defer func(SQL *sql.DB) {
+		err := SQL.Close()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}(db.SQL)
 
 	serve := &http.Server{
 		Addr:    PORT,

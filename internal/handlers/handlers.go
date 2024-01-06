@@ -12,6 +12,7 @@ import (
 	"github.com/Sunpacker/go-booking-app/internal/repository"
 	"github.com/Sunpacker/go-booking-app/internal/repository/dbrepo"
 	"github.com/go-chi/chi"
+	"log"
 	"net/http"
 	"strconv"
 	"time"
@@ -311,4 +312,50 @@ func (m *Repository) ReservationSummary(w http.ResponseWriter, r *http.Request) 
 	_ = render.Template(w, r, "reservation-summary", &models.TemplateData{
 		Data: data,
 	})
+}
+
+func (m *Repository) ShowLogin(w http.ResponseWriter, r *http.Request) {
+	_ = render.Template(w, r, "login", &models.TemplateData{
+		Form: forms.New(nil),
+	})
+}
+func (m *Repository) Login(w http.ResponseWriter, r *http.Request) {
+	_ = m.App.Session.RenewToken(r.Context())
+
+	err := r.ParseForm()
+	if err != nil {
+		log.Println(err)
+	}
+
+	form := forms.New(r.PostForm)
+	form.Required("email", "password")
+	form.IsEmail("email")
+	if !form.Valid() {
+		_ = render.Template(w, r, "login", &models.TemplateData{
+			Form: form,
+		})
+		return
+	}
+
+	id, _, err := m.DB.Authenticate(form.Get("email"), form.Get("password"))
+	if err != nil {
+		log.Println(err)
+		m.App.Session.Put(r.Context(), "error", "invalid login credentials")
+		http.Redirect(w, r, "/user/login", http.StatusSeeOther)
+		return
+	}
+
+	m.App.Session.Put(r.Context(), "user_id", id)
+	m.App.Session.Put(r.Context(), "flash", "logged in successfully")
+	http.Redirect(w, r, "/", http.StatusSeeOther)
+}
+
+func (m *Repository) Logout(w http.ResponseWriter, r *http.Request) {
+	_ = m.App.Session.Destroy(r.Context())
+	_ = m.App.Session.RenewToken(r.Context())
+	http.Redirect(w, r, "/user/login", http.StatusSeeOther)
+}
+
+func (m *Repository) AdminDashboard(w http.ResponseWriter, r *http.Request) {
+	_ = render.Template(w, r, "admin-dashboard", &models.TemplateData{})
 }
