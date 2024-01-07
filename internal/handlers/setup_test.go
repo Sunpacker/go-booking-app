@@ -22,10 +22,17 @@ import (
 
 var app config.AppConfig
 var session *scs.SessionManager
-var functions = template.FuncMap{}
+var functions = template.FuncMap{
+	"formatDate": render.FormatDate,
+}
 
 func TestMain(m *testing.M) {
+	gob.Register(models.User{})
+	gob.Register(models.Room{})
 	gob.Register(models.Reservation{})
+	gob.Register(models.Restriction{})
+	gob.Register(models.RoomRestriction{})
+
 	app.IsProd = false
 	app.UseCache = true
 	app.InfoLog = log.New(os.Stdout, "[INFO]\t", log.Ldate|log.Ltime)

@@ -11,15 +11,22 @@ import (
 	"net/http"
 	"path/filepath"
 	"strings"
+	"time"
 )
 
-var functions = template.FuncMap{}
+var functions = template.FuncMap{
+	"formatDate": FormatDate,
+}
 var templatesFormat = "./templates/%s.tmpl"
 
 var app *config.AppConfig
 
 func NewRenderer(a *config.AppConfig) {
 	app = a
+}
+
+func FormatDate(t time.Time) string {
+	return t.Format("2006-01-02")
 }
 
 func AddDefaultData(templateData *models.TemplateData, r *http.Request) *models.TemplateData {

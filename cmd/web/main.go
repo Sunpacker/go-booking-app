@@ -90,7 +90,7 @@ func initHandlers(db *driver.DB) {
 func initPages() error {
 	templateCache, err := render.CreateTemplateCache()
 	if err != nil {
-		log.Fatal("cannot create template cache")
+		log.Fatal("cannot create template cache:", err)
 		return err
 	}
 

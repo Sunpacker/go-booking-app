@@ -37,6 +37,7 @@ type Reservation struct {
 	EndDate   time.Time
 	RoomID    int
 	Room      Room
+	Processed int
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
